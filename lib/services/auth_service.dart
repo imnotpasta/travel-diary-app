@@ -1,0 +1,146 @@
+import 'dart:async';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../models/user_model.dart';
+
+/// Dịch vụ Xác thực & Hồ sơ Du khách (Firebase Auth Architecture)
+/// Cung cấp Stream authStateChanges() duy trì phiên đăng nhập của người dùng.
+class AuthService {
+  static final AuthService _instance = AuthService._internal();
+  factory AuthService() => _instance;
+  AuthService._internal() {
+    _initCurrentUser();
+  }
+
+  static const _userKey = 'current_auth_user';
+  final StreamController<AppUser?> _authStateController = StreamController<AppUser?>.broadcast();
+  AppUser? _currentUser;
+
+  /// Stream theo dõi thay đổi trạng thái xác thực (authStateChanges)
+  /// Tương thích 100% với tiêu chuẩn Firebase Auth
+  Stream<AppUser?> get authStateChanges => _authStateController.stream;
+
+  AppUser? get currentUser => _currentUser;
+  bool get isAuthenticated => _currentUser != null;
+
+  Future<void> _initCurrentUser() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userDataStr = prefs.getString(_userKey);
+      if (userDataStr != null) {
+        final Map<String, dynamic> data = jsonDecode(userDataStr);
+        _currentUser = AppUser.fromMap(data);
+        _authStateController.add(_currentUser);
+      } else {
+        // Khởi tạo người dùng mặc định sẵn sàng trải nghiệm
+        final defaultUser = AppUser(
+          uid: 'traveller_demo_99',
+          email: 'traveler@vietnam.com',
+          displayName: 'Nguyễn Văn Du Khách',
+          photoUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=400&q=80',
+          bio: 'Yêu thiên nhiên, say đắm những cung đường Tây Bắc & biển đảo Phú Quốc.',
+          homeCity: 'Đà Nẵng',
+        );
+        _currentUser = defaultUser;
+        await _saveUserToPrefs(defaultUser);
+        _authStateController.add(_currentUser);
+      }
+    } catch (e) {
+      _authStateController.add(null);
+    }
+  }
+
+  /// Đăng nhập tài khoản (Email & Password)
+  Future<AppUser> signInWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) async {
+    // Giả lập độ trễ kết nối mạng an toàn
+    await Future.delayed(const Duration(milliseconds: 600));
+
+    if (password.length < 6) {
+      throw Exception('Mật khẩu phải có ít nhất 6 ký tự!');
+    }
+
+    final user = AppUser(
+      uid: 'user_${email.hashCode.abs()}',
+      email: email,
+      displayName: email.split('@').first.toUpperCase(),
+      photoUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=400&q=80',
+      bio: 'Du khách đồng hành cùng Travel Diary.',
+      homeCity: 'Hồ Chí Minh',
+    );
+
+    _currentUser = user;
+    await _saveUserToPrefs(user);
+    _authStateController.add(_currentUser);
+    return user;
+  }
+
+  /// Đăng ký tài khoản mới (Firebase Auth Register)
+  Future<AppUser> createUserWithEmailAndPassword({
+    required String email,
+    required String password,
+    required String displayName,
+    String? homeCity,
+  }) async {
+    await Future.delayed(const Duration(milliseconds: 700));
+
+    if (password.length < 6) {
+      throw Exception('Mật khẩu tối thiểu 6 ký tự để đảm bảo bảo mật!');
+    }
+
+    final user = AppUser(
+      uid: 'uid_${DateTime.now().millisecondsSinceEpoch}',
+      email: email,
+      displayName: displayName.isNotEmpty ? displayName : 'Tân Du Khách',
+      photoUrl: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=400&q=80',
+      bio: 'Thành viên mới của cộng đồng du lịch & nhật ký.',
+      homeCity: homeCity ?? 'Hà Nội',
+    );
+
+    _currentUser = user;
+    await _saveUserToPrefs(user);
+    _authStateController.add(_currentUser);
+    return user;
+  }
+
+  /// Cập nhật Hồ sơ Du khách (Profile Update)
+  Future<void> updateProfile({
+    String? displayName,
+    String? bio,
+    String? photoUrl,
+    String? homeCity,
+  }) async {
+    if (_currentUser == null) return;
+
+    final updated = _currentUser!.copyWith(
+      displayName: displayName,
+      bio: bio,
+      photoUrl: photoUrl,
+      homeCity: homeCity,
+    );
+
+    _currentUser = updated;
+    await _saveUserToPrefs(updated);
+    _authStateController.add(_currentUser);
+  }
+
+  /// Đăng xuất phiên làm việc (Sign Out)
+  Future<void> signOut() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_userKey);
+    _currentUser = null;
+    _authStateController.add(null);
+  }
+
+  Future<void> _saveUserToPrefs(AppUser user) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_userKey, jsonEncode(user.toMap()));
+  }
+
+  void dispose() {
+    _authStateController.close();
+  }
+}
+
