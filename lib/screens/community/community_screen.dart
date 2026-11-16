@@ -197,10 +197,25 @@ class _CommunityScreenState extends State<CommunityScreen> {
               padding: const EdgeInsets.all(14.0),
               child: Row(
                 children: [
-                  CircleAvatar(
-                    backgroundImage: NetworkImage(post.authorAvatar),
-                    onBackgroundImageError: (_, __) {},
-                    child: post.authorAvatar.isEmpty ? const Icon(Icons.person) : null,
+                  ClipOval(
+                    child: SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: AppImage(
+                        imagePath: post.authorAvatar,
+                        width: 40,
+                        height: 40,
+                        fit: BoxFit.cover,
+                        errorWidget: CircleAvatar(
+                          radius: 20,
+                          backgroundColor: Colors.teal.withValues(alpha: 0.2),
+                          child: Text(
+                            post.authorName.isNotEmpty ? post.authorName[0].toUpperCase() : 'U',
+                            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.teal),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(

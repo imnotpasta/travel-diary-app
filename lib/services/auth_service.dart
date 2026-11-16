@@ -51,9 +51,11 @@ class AuthService {
         _currentUser = AppUser.fromMap(data);
         _authStateController.add(_currentUser);
       } else {
-        // Khởi tạo người dùng mẫu sẵn sàng trải nghiệm
-        _currentUser = _defaultDemoUser;
-        await _saveUserProfile(_defaultDemoUser);
+        // Khởi tạo người dùng mẫu (ưu tiên hồ sơ đã chỉnh sửa trước đó nếu có)
+        final savedDemo =
+            await _fetchUserProfile('traveller_demo_99', 'traveler@vietnam.com');
+        _currentUser = savedDemo ?? _defaultDemoUser;
+        await _saveUserProfile(_currentUser!);
         _authStateController.add(_currentUser);
       }
     } catch (e) {
@@ -74,10 +76,13 @@ class AuthService {
     // 1. Kiểm tra tài khoản mẫu mặc định (traveler@vietnam.com / 123456)
     if (cleanEmail.toLowerCase() == 'traveler@vietnam.com' &&
         (password == '123456' || password == 'password123')) {
-      _currentUser = _defaultDemoUser;
-      await _saveUserProfile(_defaultDemoUser);
+      // Ưu tiên nạp lại thông tin mới nhất nếu người dùng đã từng chỉnh sửa
+      final savedDemo =
+          await _fetchUserProfile('traveller_demo_99', cleanEmail);
+      _currentUser = savedDemo ?? _defaultDemoUser;
+      await _saveUserProfile(_currentUser!);
       _authStateController.add(_currentUser);
-      return _defaultDemoUser;
+      return _currentUser!;
     }
 
     // 2. Xác thực với Firebase Authentication

@@ -90,10 +90,25 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                     // Tác giả & Thời gian
                     Row(
                       children: [
-                        CircleAvatar(
-                          backgroundImage: NetworkImage(post.authorAvatar),
-                          onBackgroundImageError: (_, __) {},
-                          child: post.authorAvatar.isEmpty ? const Icon(Icons.person) : null,
+                        ClipOval(
+                          child: SizedBox(
+                            width: 42,
+                            height: 42,
+                            child: AppImage(
+                              imagePath: post.authorAvatar,
+                              width: 42,
+                              height: 42,
+                              fit: BoxFit.cover,
+                              errorWidget: CircleAvatar(
+                                radius: 21,
+                                backgroundColor: Colors.teal.withValues(alpha: 0.2),
+                                child: Text(
+                                  post.authorName.isNotEmpty ? post.authorName[0].toUpperCase() : 'U',
+                                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.teal),
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
                         const SizedBox(width: 12),
                         Column(
@@ -220,11 +235,25 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(
-            radius: 16,
-            backgroundImage: NetworkImage(comment.authorAvatar),
-            onBackgroundImageError: (_, __) {},
-            child: comment.authorAvatar.isEmpty ? const Icon(Icons.person, size: 16) : null,
+          ClipOval(
+            child: SizedBox(
+              width: 32,
+              height: 32,
+              child: AppImage(
+                imagePath: comment.authorAvatar,
+                width: 32,
+                height: 32,
+                fit: BoxFit.cover,
+                errorWidget: CircleAvatar(
+                  radius: 16,
+                  backgroundColor: Colors.teal.withValues(alpha: 0.2),
+                  child: Text(
+                    comment.authorName.isNotEmpty ? comment.authorName[0].toUpperCase() : 'U',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.teal),
+                  ),
+                ),
+              ),
+            ),
           ),
           const SizedBox(width: 10),
           Expanded(
