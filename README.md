@@ -8,6 +8,16 @@
 [![Database](https://img.shields.io/badge/Database-Sqflite%20SQLite-003B57?logo=sqlite)](https://pub.dev/packages/sqflite)
 [![Firebase](https://img.shields.io/badge/Firebase-Auth%20%26%20Realtime-FFCA28?logo=firebase)](https://firebase.google.com)
 [![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS%20%7C%20Web-4CAF50)](#)
+[![Download APK](https://img.shields.io/badge/Download-Android%20APK-2ea44f?logo=android&logoColor=white)](../../releases)
+
+---
+
+## 📥 Tải về & Cài đặt Trực tiếp (Android APK)
+> Bạn có thể tải ngay file cài đặt ứng dụng cho điện thoại Android tại mục **Releases** của repository này:  
+> 👉 **[Bấm vào đây để tải file app-release.apk](../../releases)**  
+> *(Sau khi tải về, mở file trên điện thoại Android và chọn Cài đặt để trải nghiệm ngay).*
+
+---
 
 ---
 
