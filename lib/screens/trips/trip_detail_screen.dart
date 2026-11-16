@@ -6,6 +6,8 @@ import '../../providers/trip_provider.dart';
 import '../../services/weather_api_service.dart';
 import '../../utils/formatters.dart';
 import '../weather/weather_screen.dart';
+import '../../widgets/app_image.dart';
+import '../../widgets/image_picker_widget.dart';
 import 'trip_form_screen.dart';
 
 class TripDetailScreen extends StatefulWidget {
@@ -38,13 +40,12 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextField(
-                  controller: imageUrlController,
-                  decoration: const InputDecoration(
-                    labelText: 'URL hình ảnh',
-                    hintText: 'https://...',
-                    prefixIcon: Icon(Icons.link),
-                  ),
+                ImagePickerWidget(
+                  label: 'Ảnh kỷ niệm (Chọn từ máy / Chụp ảnh)',
+                  initialImage: imageUrlController.text,
+                  onImageSelected: (path) {
+                    imageUrlController.text = path;
+                  },
                 ),
                 const SizedBox(height: 12),
                 TextField(
@@ -197,10 +198,10 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                 ),
               ),
               background: trip.coverImage != null && trip.coverImage!.isNotEmpty
-                  ? Image.network(
-                      trip.coverImage!,
+                  ? AppImage(
+                      imagePath: trip.coverImage!,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(color: Colors.teal),
+                      errorWidget: Container(color: Colors.teal),
                     )
                   : Container(color: Colors.teal),
             ),
@@ -360,16 +361,14 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
                                 children: [
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(8),
-                                    child: Image.network(
-                                      mem.imagePath,
+                                    child: SizedBox(
                                       width: 80,
                                       height: 80,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => Container(
+                                      child: AppImage(
+                                        imagePath: mem.imagePath,
                                         width: 80,
                                         height: 80,
-                                        color: Colors.grey[300],
-                                        child: const Icon(Icons.image_not_supported),
+                                        fit: BoxFit.cover,
                                       ),
                                     ),
                                   ),

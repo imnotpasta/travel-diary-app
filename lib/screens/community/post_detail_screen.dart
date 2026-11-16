@@ -3,6 +3,7 @@ import '../../models/community_post.dart';
 import '../../services/auth_service.dart';
 import '../../services/realtime_db_service.dart';
 import '../../utils/formatters.dart';
+import '../../widgets/app_image.dart';
 
 class PostDetailScreen extends StatefulWidget {
   final String postId;
@@ -125,10 +126,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                     if (post.imageUrl.isNotEmpty)
                       ClipRRect(
                         borderRadius: BorderRadius.circular(14),
-                        child: Image.network(
-                          post.imageUrl,
+                        child: AppImage(
+                          imagePath: post.imageUrl,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const SizedBox(),
+                          errorWidget: const SizedBox(),
                         ),
                       ),
                     const SizedBox(height: 12),

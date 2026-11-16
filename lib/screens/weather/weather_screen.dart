@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/weather_model.dart';
+import '../../services/auth_service.dart';
 import '../../services/weather_api_service.dart';
 
 class WeatherScreen extends StatefulWidget {
@@ -32,9 +33,10 @@ class _WeatherScreenState extends State<WeatherScreen> {
   @override
   void initState() {
     super.initState();
+    final userCity = AuthService().currentUser?.homeCity;
     _currentQuery = widget.prefilledCity?.isNotEmpty == true
         ? widget.prefilledCity!
-        : 'Đà Lạt';
+        : (userCity != null && userCity.isNotEmpty ? userCity : 'Đà Lạt');
     _cityController.text = _currentQuery;
     _fetchWeather();
   }

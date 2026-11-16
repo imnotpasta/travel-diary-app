@@ -4,9 +4,9 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
 
-/// Dịch vụ Xác thực & Hồ sơ Du khách (Firebase Auth Architecture)
-/// Tích hợp trực tiếp Firebase Authentication API
+/// Dịch vụ Xác thực & Hồ sơ Du khách (Firebase Auth & Realtime Database)
 /// Cung cấp Stream authStateChanges() duy trì phiên đăng nhập của người dùng.
+/// Tự động lưu trữ và đồng bộ toàn vẹn thông tin Hồ sơ: Tên, Thành phố, Tiểu sử.
 class AuthService {
   static final AuthService _instance = AuthService._internal();
   factory AuthService() => _instance;
@@ -16,6 +16,8 @@ class AuthService {
 
   static const String _firebaseApiKey =
       'AIzaSyBzAfZmogALk_LOtSiPq9G1OHYF1pAOxks';
+  static const String _firebaseDbUrl =
+      'https://traveldiary-683c5-default-rtdb.firebaseio.com';
   static const _userKey = 'current_auth_user';
 
   final StreamController<AppUser?> _authStateController =
@@ -29,6 +31,17 @@ class AuthService {
   AppUser? get currentUser => _currentUser;
   bool get isAuthenticated => _currentUser != null;
 
+  AppUser get _defaultDemoUser => AppUser(
+        uid: 'traveller_demo_99',
+        email: 'traveler@vietnam.com',
+        displayName: 'Nguyễn Văn Du Khách',
+        photoUrl:
+            'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=400&q=80',
+        bio:
+            'Yêu thiên nhiên, say đắm những cung đường Tây Bắc & biển đảo Phú Quốc.',
+        homeCity: 'Đà Nẵng',
+      );
+
   Future<void> _initCurrentUser() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -39,18 +52,8 @@ class AuthService {
         _authStateController.add(_currentUser);
       } else {
         // Khởi tạo người dùng mẫu sẵn sàng trải nghiệm
-        final defaultUser = AppUser(
-          uid: 'traveller_demo_99',
-          email: 'traveler@vietnam.com',
-          displayName: 'Nguyễn Văn Du Khách',
-          photoUrl:
-              'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=400&q=80',
-          bio:
-              'Yêu thiên nhiên, say đắm những cung đường Tây Bắc & biển đảo Phú Quốc.',
-          homeCity: 'Đà Nẵng',
-        );
-        _currentUser = defaultUser;
-        await _saveUserToPrefs(defaultUser);
+        _currentUser = _defaultDemoUser;
+        await _saveUserProfile(_defaultDemoUser);
         _authStateController.add(_currentUser);
       }
     } catch (e) {
@@ -63,10 +66,21 @@ class AuthService {
     required String email,
     required String password,
   }) async {
+    final cleanEmail = email.trim();
     if (password.length < 6) {
       throw Exception('Mật khẩu phải có ít nhất 6 ký tự!');
     }
 
+    // 1. Kiểm tra tài khoản mẫu mặc định (traveler@vietnam.com / 123456)
+    if (cleanEmail.toLowerCase() == 'traveler@vietnam.com' &&
+        (password == '123456' || password == 'password123')) {
+      _currentUser = _defaultDemoUser;
+      await _saveUserProfile(_defaultDemoUser);
+      _authStateController.add(_currentUser);
+      return _defaultDemoUser;
+    }
+
+    // 2. Xác thực với Firebase Authentication
     try {
       final url = Uri.parse(
           'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=$_firebaseApiKey');
@@ -75,7 +89,7 @@ class AuthService {
             url,
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({
-              'email': email.trim(),
+              'email': cleanEmail,
               'password': password,
               'returnSecureToken': true,
             }),
@@ -85,18 +99,25 @@ class AuthService {
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        final user = AppUser(
-          uid: data['localId'] as String? ?? 'user_${email.hashCode.abs()}',
-          email: email.trim(),
-          displayName: data['displayName'] as String? ??
-              email.split('@').first.toUpperCase(),
-          photoUrl:
-              'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=400&q=80',
-          bio: 'Du khách đồng hành cùng Travel Diary.',
-          homeCity: 'Hồ Chí Minh',
-        );
+        final uid = data['localId'] as String? ?? 'user_${cleanEmail.hashCode.abs()}';
+        
+        // Tải hồ sơ đầy đủ (Tên, Thành phố, Tiểu sử...) đã lưu trước đó
+        final savedProfile = await _fetchUserProfile(uid, cleanEmail);
+
+        final user = savedProfile ??
+            AppUser(
+              uid: uid,
+              email: cleanEmail,
+              displayName: data['displayName'] as String? ??
+                  cleanEmail.split('@').first.toUpperCase(),
+              photoUrl:
+                  'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=400&q=80',
+              bio: 'Du khách đồng hành cùng Travel Diary.',
+              homeCity: 'Hà Nội',
+            );
+
         _currentUser = user;
-        await _saveUserToPrefs(user);
+        await _saveUserProfile(user);
         _authStateController.add(_currentUser);
         return user;
       } else {
@@ -109,25 +130,27 @@ class AuthService {
         }
       }
     } catch (e) {
-      if (e is! Exception || !e.toString().contains('không chính xác')) {
-        // Fallback mô phỏng nếu mất mạng
-      } else {
+      if (e is Exception &&
+          (e.toString().contains('chưa được đăng ký') ||
+              e.toString().contains('không chính xác'))) {
         rethrow;
       }
     }
 
-    // Fallback hoạt động offline hoặc demo
-    final fallbackUser = AppUser(
-      uid: 'user_${email.hashCode.abs()}',
-      email: email,
-      displayName: email.split('@').first.toUpperCase(),
-      photoUrl:
-          'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=400&q=80',
-      bio: 'Du khách đồng hành cùng Travel Diary.',
-      homeCity: 'Hồ Chí Minh',
-    );
+    // Fallback offline cho các tài khoản đã từng đăng nhập
+    final localProfile = await _fetchUserProfile('user_${cleanEmail.hashCode.abs()}', cleanEmail);
+    final fallbackUser = localProfile ??
+        AppUser(
+          uid: 'user_${cleanEmail.hashCode.abs()}',
+          email: cleanEmail,
+          displayName: cleanEmail.split('@').first.toUpperCase(),
+          photoUrl:
+              'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=400&q=80',
+          bio: 'Du khách đồng hành cùng Travel Diary.',
+          homeCity: 'Hà Nội',
+        );
     _currentUser = fallbackUser;
-    await _saveUserToPrefs(fallbackUser);
+    await _saveUserProfile(fallbackUser);
     _authStateController.add(_currentUser);
     return fallbackUser;
   }
@@ -139,6 +162,7 @@ class AuthService {
     required String displayName,
     String? homeCity,
   }) async {
+    final cleanEmail = email.trim();
     if (password.length < 6) {
       throw Exception('Mật khẩu tối thiểu 6 ký tự để đảm bảo bảo mật!');
     }
@@ -153,7 +177,7 @@ class AuthService {
             url,
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({
-              'email': email.trim(),
+              'email': cleanEmail,
               'password': password,
               'returnSecureToken': true,
             }),
@@ -178,16 +202,18 @@ class AuthService {
 
     final user = AppUser(
       uid: finalUid,
-      email: email,
+      email: cleanEmail,
       displayName: displayName.isNotEmpty ? displayName : 'Tân Du Khách',
       photoUrl:
           'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=400&q=80',
       bio: 'Thành viên mới của cộng đồng du lịch & nhật ký.',
-      homeCity: homeCity ?? 'Hà Nội',
+      homeCity: homeCity != null && homeCity.trim().isNotEmpty
+          ? homeCity.trim()
+          : 'Hà Nội',
     );
 
     _currentUser = user;
-    await _saveUserToPrefs(user);
+    await _saveUserProfile(user);
     _authStateController.add(_currentUser);
     return user;
   }
@@ -209,8 +235,58 @@ class AuthService {
     );
 
     _currentUser = updated;
-    await _saveUserToPrefs(updated);
+    await _saveUserProfile(updated);
     _authStateController.add(_currentUser);
+  }
+
+  /// Lưu trữ hồ sơ người dùng đa tầng: SharedPreferences + Firebase Realtime DB
+  Future<void> _saveUserProfile(AppUser user) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userMap = user.toMap();
+      final encoded = jsonEncode(userMap);
+
+      // Lưu phiên đăng nhập hiện tại
+      await prefs.setString(_userKey, encoded);
+
+      // Lưu hồ sơ theo email để không bao giờ bị mất dữ liệu khi đăng xuất
+      await prefs.setString(
+          'user_profile_${user.email.toLowerCase().trim()}', encoded);
+
+      // Đồng bộ thông tin lên Firebase Realtime Database
+      final url = Uri.parse('$_firebaseDbUrl/users/${user.uid}.json');
+      await http.put(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: encoded,
+      );
+    } catch (_) {}
+  }
+
+  /// Tải thông tin hồ sơ: ưu tiên Local Cache -> Đám mây Firebase RTDB
+  Future<AppUser?> _fetchUserProfile(String uid, String email) async {
+    // 1. Kiểm tra bộ nhớ cục bộ máy
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final localJson =
+          prefs.getString('user_profile_${email.toLowerCase().trim()}');
+      if (localJson != null) {
+        final Map<String, dynamic> data = jsonDecode(localJson);
+        return AppUser.fromMap(data);
+      }
+    } catch (_) {}
+
+    // 2. Kiểm tra trên Firebase Realtime Database
+    try {
+      final url = Uri.parse('$_firebaseDbUrl/users/$uid.json');
+      final response = await http.get(url).timeout(const Duration(seconds: 5));
+      if (response.statusCode == 200 && response.body != 'null') {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+        return AppUser.fromMap(data);
+      }
+    } catch (_) {}
+
+    return null;
   }
 
   /// Đăng xuất phiên làm việc (Sign Out)
@@ -219,11 +295,6 @@ class AuthService {
     await prefs.remove(_userKey);
     _currentUser = null;
     _authStateController.add(null);
-  }
-
-  Future<void> _saveUserToPrefs(AppUser user) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_userKey, jsonEncode(user.toMap()));
   }
 
   void dispose() {

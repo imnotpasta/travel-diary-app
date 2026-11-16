@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../models/trip.dart';
 import '../../providers/trip_provider.dart';
 import '../../utils/formatters.dart';
+import '../../widgets/app_image.dart';
 import '../../widgets/empty_state.dart';
 import 'trip_detail_screen.dart';
 import 'trip_form_screen.dart';
@@ -115,16 +116,18 @@ class _TripListScreenState extends State<TripListScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const TripFormScreen()),
-          );
-        },
-        icon: const Icon(Icons.add),
-        label: const Text('Thêm chuyến đi'),
-      ),
+      floatingActionButton: trips.isEmpty
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const TripFormScreen()),
+                );
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('Thêm chuyến đi'),
+            ),
     );
   }
 
@@ -150,16 +153,20 @@ class _TripListScreenState extends State<TripListScreen> {
                 if (trip.coverImage != null && trip.coverImage!.isNotEmpty)
                   ClipRRect(
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                    child: Image.network(
-                      trip.coverImage!,
+                    child: SizedBox(
                       height: 160,
                       width: double.infinity,
-                      fit: BoxFit.cover,
-                      errorBuilder: (ctx, err, stack) => Container(
-                        height: 120,
-                        color: Colors.teal.withOpacity(0.2),
-                        child: const Center(
-                          child: Icon(Icons.landscape, size: 50, color: Colors.teal),
+                      child: AppImage(
+                        imagePath: trip.coverImage!,
+                        height: 160,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorWidget: Container(
+                          height: 120,
+                          color: Colors.teal.withValues(alpha: 0.2),
+                          child: const Center(
+                            child: Icon(Icons.landscape, size: 50, color: Colors.teal),
+                          ),
                         ),
                       ),
                     ),

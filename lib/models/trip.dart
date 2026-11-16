@@ -1,5 +1,6 @@
 class Trip {
   final int? id;
+  final String userId;
   final String title;
   final String destination;
   final DateTime startDate;
@@ -10,6 +11,7 @@ class Trip {
 
   Trip({
     this.id,
+    this.userId = 'traveller_demo_99',
     required this.title,
     required this.destination,
     required this.startDate,
@@ -22,6 +24,7 @@ class Trip {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'user_id': userId,
       'title': title,
       'destination': destination,
       'start_date': startDate.toIso8601String(),
@@ -35,6 +38,7 @@ class Trip {
   factory Trip.fromMap(Map<String, dynamic> map) {
     return Trip(
       id: map['id'] as int?,
+      userId: map['user_id'] as String? ?? 'traveller_demo_99',
       title: map['title'] as String? ?? '',
       destination: map['destination'] as String? ?? '',
       startDate: DateTime.tryParse(map['start_date'] as String? ?? '') ?? DateTime.now(),
@@ -47,6 +51,7 @@ class Trip {
 
   Trip copyWith({
     int? id,
+    String? userId,
     String? title,
     String? destination,
     DateTime? startDate,
@@ -57,6 +62,7 @@ class Trip {
   }) {
     return Trip(
       id: id ?? this.id,
+      userId: userId ?? this.userId,
       title: title ?? this.title,
       destination: destination ?? this.destination,
       startDate: startDate ?? this.startDate,
@@ -67,4 +73,3 @@ class Trip {
     );
   }
 }
-

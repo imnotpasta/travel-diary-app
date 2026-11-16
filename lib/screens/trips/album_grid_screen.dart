@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../models/memory.dart';
 import '../../providers/trip_provider.dart';
 import '../../utils/formatters.dart';
+import '../../widgets/app_image.dart';
 import '../../widgets/empty_state.dart';
 
 class AlbumGridScreen extends StatelessWidget {
@@ -26,10 +27,10 @@ class AlbumGridScreen extends StatelessWidget {
             ),
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
-              child: Image.network(
-                memory.imagePath,
+              child: AppImage(
+                imagePath: memory.imagePath,
                 fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => Container(
+                errorWidget: Container(
                   height: 200,
                   color: Colors.grey[800],
                   child: const Center(child: Icon(Icons.broken_image, color: Colors.white)),
@@ -191,10 +192,10 @@ class AlbumGridScreen extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.network(
-                    memory.imagePath,
+                  AppImage(
+                    imagePath: memory.imagePath,
                     fit: BoxFit.cover,
-                    errorBuilder: (ctx, err, stack) => Container(
+                    errorWidget: Container(
                       color: Colors.grey[300],
                       child: const Center(
                         child: Icon(Icons.image_not_supported, color: Colors.grey),

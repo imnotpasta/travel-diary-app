@@ -110,6 +110,27 @@ class _LoginScreenState extends State<LoginScreen> {
                     return null;
                   },
                 ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.teal.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.teal.withValues(alpha: 0.3)),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.info_outline, size: 20, color: Colors.teal),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Tài khoản trải nghiệm mẫu:\nEmail: traveler@vietnam.com | MK: 123456',
+                          style: TextStyle(fontSize: 12, color: Colors.teal),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 24),
 
                 ElevatedButton(

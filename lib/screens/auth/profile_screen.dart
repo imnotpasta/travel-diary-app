@@ -4,6 +4,8 @@ import '../../models/user_model.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/trip_provider.dart';
 import '../../services/auth_service.dart';
+import '../../widgets/app_image.dart';
+import '../../widgets/image_picker_widget.dart';
 import 'login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -20,6 +22,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final nameCtrl = TextEditingController(text: user.displayName);
     final cityCtrl = TextEditingController(text: user.homeCity);
     final bioCtrl = TextEditingController(text: user.bio);
+    String selectedPhoto = user.photoUrl ?? '';
 
     showDialog(
       context: context,
@@ -29,6 +32,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              ImagePickerWidget(
+                label: 'Ảnh đại diện (Avatar)',
+                initialImage: selectedPhoto,
+                convertToBase64ForCloud: true,
+                onImageSelected: (path) {
+                  selectedPhoto = path;
+                },
+              ),
+              const SizedBox(height: 12),
               TextField(
                 controller: nameCtrl,
                 decoration: const InputDecoration(labelText: 'Tên hiển thị'),
@@ -55,6 +67,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 displayName: nameCtrl.text.trim(),
                 homeCity: cityCtrl.text.trim(),
                 bio: bioCtrl.text.trim(),
+                photoUrl: selectedPhoto.isNotEmpty ? selectedPhoto : user.photoUrl,
               );
               if (ctx.mounted) Navigator.pop(ctx);
             },
@@ -105,10 +118,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Column(
               children: [
                 // Avatar và Tên
-                CircleAvatar(
-                  radius: 50,
-                  backgroundImage: user.photoUrl != null ? NetworkImage(user.photoUrl!) : null,
-                  child: user.photoUrl == null ? const Icon(Icons.person, size: 50) : null,
+                ClipOval(
+                  child: SizedBox(
+                    width: 100,
+                    height: 100,
+                    child: AppImage(
+                      imagePath: user.photoUrl ?? '',
+                      width: 100,
+                      height: 100,
+                      fit: BoxFit.cover,
+                      errorWidget: const CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Colors.teal,
+                        child: Icon(Icons.person, size: 50, color: Colors.white),
+                      ),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 14),
                 Text(

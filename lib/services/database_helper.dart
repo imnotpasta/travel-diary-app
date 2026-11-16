@@ -6,11 +6,12 @@ import '../models/memory.dart';
 
 class DatabaseHelper {
   static const _databaseName = "travel_diary.db";
-  static const _databaseVersion = 1;
+  static const _databaseVersion = 2;
 
   // Table trips
   static const tableTrips = 'trips';
   static const columnTripId = 'id';
+  static const columnTripUserId = 'user_id';
   static const columnTripTitle = 'title';
   static const columnTripDestination = 'destination';
   static const columnTripStartDate = 'start_date';
@@ -49,22 +50,28 @@ class DatabaseHelper {
     _webTrips.addAll([
       Trip(
         id: _webTripCounter++,
+        userId: 'traveller_demo_99',
         title: 'Khám phá Đà Lạt Mộng Mơ',
         destination: 'Đà Lạt, Lâm Đồng',
         startDate: DateTime.now().add(const Duration(days: 3)),
         budget: 4500000.0,
-        itinerary: '- Ngày 1: Hồ Xuân Hương, Quảng trường Lâm Viên, Chợ Đêm.\n- Ngày 2: Đồi Chè Cầu Đất, Cà phê Mê Linh, Thác Datanla.\n- Ngày 3: Thung lũng Tình Yêu, Mua đặc sản mứt dâu & hoa quả.',
-        coverImage: 'https://images.unsplash.com/photo-1583417319070-4a69db38a482?auto=format&fit=crop&w=800&q=80',
+        itinerary:
+            '- Ngày 1: Hồ Xuân Hương, Quảng trường Lâm Viên, Chợ Đêm.\n- Ngày 2: Đồi Chè Cầu Đất, Cà phê Mê Linh, Thác Datanla.\n- Ngày 3: Thung lũng Tình Yêu, Mua đặc sản mứt dâu & hoa quả.',
+        coverImage:
+            'https://images.unsplash.com/photo-1583417319070-4a69db38a482?auto=format&fit=crop&w=800&q=80',
         createdAt: DateTime.now(),
       ),
       Trip(
         id: _webTripCounter++,
+        userId: 'traveller_demo_99',
         title: 'Hành trình Biển xanh Phú Quốc',
         destination: 'Phú Quốc, Kiên Giang',
         startDate: DateTime.now().add(const Duration(days: 14)),
         budget: 8500000.0,
-        itinerary: '- Ngày 1: Check-in Sunset Sanato, Dạo chợ đêm Bạch Đằng.\n- Ngày 2: Tour 4 đảo lặn ngắm san hô (Hòn Móng Tay, Hòn Gầm Ghì).\n- Ngày 3: Tham quan Grand World và VinWonders.',
-        coverImage: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80',
+        itinerary:
+            '- Ngày 1: Check-in Sunset Sanato, Dạo chợ đêm Bạch Đằng.\n- Ngày 2: Tour 4 đảo lặn ngắm san hô (Hòn Móng Tay, Hòn Gầm Ghì).\n- Ngày 3: Tham quan Grand World và VinWonders.',
+        coverImage:
+            'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80',
         createdAt: DateTime.now(),
       ),
     ]);
@@ -73,7 +80,8 @@ class DatabaseHelper {
       TripMemory(
         id: _webMemoryCounter++,
         tripId: 1,
-        imagePath: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
+        imagePath:
+            'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
         caption: 'Bình minh sáng sớm trên đỉnh đồi sương mờ',
         location: 'Đồi Đa Phú, Đà Lạt',
         date: DateTime.now(),
@@ -82,7 +90,8 @@ class DatabaseHelper {
       TripMemory(
         id: _webMemoryCounter++,
         tripId: 1,
-        imagePath: 'https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=800&q=80',
+        imagePath:
+            'https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=800&q=80',
         caption: 'Tách cà phê ấm ngắm trọn rừng thông',
         location: 'Quán Gió Đà Lạt',
         date: DateTime.now(),
@@ -91,7 +100,8 @@ class DatabaseHelper {
       TripMemory(
         id: _webMemoryCounter++,
         tripId: 2,
-        imagePath: 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&w=800&q=80',
+        imagePath:
+            'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&w=800&q=80',
         caption: 'Hoàng hôn rực rỡ biển Bãi Sao',
         location: 'Bãi Sao, Phú Quốc',
         date: DateTime.now(),
@@ -102,7 +112,8 @@ class DatabaseHelper {
 
   Future<Database> get database async {
     if (kIsWeb) {
-      throw UnsupportedError('SQLite binary native is not run on Web. Using web fallback repository.');
+      throw UnsupportedError(
+          'SQLite binary native is not run on Web. Using web fallback repository.');
     }
     if (_database != null) return _database!;
     _database = await _initDatabase();
@@ -118,6 +129,7 @@ class DatabaseHelper {
       version: _databaseVersion,
       onConfigure: _onConfigure,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -129,6 +141,7 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE $tableTrips (
         $columnTripId INTEGER PRIMARY KEY AUTOINCREMENT,
+        $columnTripUserId TEXT NOT NULL,
         $columnTripTitle TEXT NOT NULL,
         $columnTripDestination TEXT NOT NULL,
         $columnTripStartDate TEXT NOT NULL,
@@ -155,30 +168,47 @@ class DatabaseHelper {
     await _insertInitialSampleData(db);
   }
 
+  Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute(
+        'ALTER TABLE $tableTrips ADD COLUMN $columnTripUserId TEXT DEFAULT "traveller_demo_99"',
+      );
+    }
+  }
+
   Future<void> _insertInitialSampleData(Database db) async {
     final sampleTripId1 = await db.insert(tableTrips, {
+      columnTripUserId: 'traveller_demo_99',
       columnTripTitle: 'Khám phá Đà Lạt Mộng Mơ',
       columnTripDestination: 'Đà Lạt, Lâm Đồng',
-      columnTripStartDate: DateTime.now().add(const Duration(days: 3)).toIso8601String(),
+      columnTripStartDate:
+          DateTime.now().add(const Duration(days: 3)).toIso8601String(),
       columnTripBudget: 4500000.0,
-      columnTripItinerary: '- Ngày 1: Hồ Xuân Hương, Quảng trường Lâm Viên, Chợ Đêm.\n- Ngày 2: Đồi Chè Cầu Đất, Cà phê Mê Linh, Thác Datanla.\n- Ngày 3: Thung lũng Tình Yêu, Mua đặc sản mứt dâu & hoa quả.',
-      columnTripCoverImage: 'https://images.unsplash.com/photo-1583417319070-4a69db38a482?auto=format&fit=crop&w=800&q=80',
+      columnTripItinerary:
+          '- Ngày 1: Hồ Xuân Hương, Quảng trường Lâm Viên, Chợ Đêm.\n- Ngày 2: Đồi Chè Cầu Đất, Cà phê Mê Linh, Thác Datanla.\n- Ngày 3: Thung lũng Tình Yêu, Mua đặc sản mứt dâu & hoa quả.',
+      columnTripCoverImage:
+          'https://images.unsplash.com/photo-1583417319070-4a69db38a482?auto=format&fit=crop&w=800&q=80',
       columnTripCreatedAt: DateTime.now().toIso8601String(),
     });
 
     final sampleTripId2 = await db.insert(tableTrips, {
+      columnTripUserId: 'traveller_demo_99',
       columnTripTitle: 'Hành trình Biển xanh Phú Quốc',
       columnTripDestination: 'Phú Quốc, Kiên Giang',
-      columnTripStartDate: DateTime.now().add(const Duration(days: 14)).toIso8601String(),
+      columnTripStartDate:
+          DateTime.now().add(const Duration(days: 14)).toIso8601String(),
       columnTripBudget: 8500000.0,
-      columnTripItinerary: '- Ngày 1: Check-in Sunset Sanato, Dạo chợ đêm Bạch Đằng.\n- Ngày 2: Tour 4 đảo lặn ngắm san hô (Hòn Móng Tay, Hòn Gầm Ghì).\n- Ngày 3: Tham quan Grand World và VinWonders.',
-      columnTripCoverImage: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80',
+      columnTripItinerary:
+          '- Ngày 1: Check-in Sunset Sanato, Dạo chợ đêm Bạch Đằng.\n- Ngày 2: Tour 4 đảo lặn ngắm san hô (Hòn Móng Tay, Hòn Gầm Ghì).\n- Ngày 3: Tham quan Grand World và VinWonders.',
+      columnTripCoverImage:
+          'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80',
       columnTripCreatedAt: DateTime.now().toIso8601String(),
     });
 
     await db.insert(tableMemories, {
       columnMemoryTripId: sampleTripId1,
-      columnMemoryImagePath: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
+      columnMemoryImagePath:
+          'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
       columnMemoryCaption: 'Bình minh sáng sớm trên đỉnh đồi sương mờ',
       columnMemoryLocation: 'Đồi Đa Phú, Đà Lạt',
       columnMemoryDate: DateTime.now().toIso8601String(),
@@ -187,7 +217,8 @@ class DatabaseHelper {
 
     await db.insert(tableMemories, {
       columnMemoryTripId: sampleTripId1,
-      columnMemoryImagePath: 'https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=800&q=80',
+      columnMemoryImagePath:
+          'https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=800&q=80',
       columnMemoryCaption: 'Tách cà phê ấm ngắm trọn rừng thông',
       columnMemoryLocation: 'Quán Gió Đà Lạt',
       columnMemoryDate: DateTime.now().toIso8601String(),
@@ -196,7 +227,8 @@ class DatabaseHelper {
 
     await db.insert(tableMemories, {
       columnMemoryTripId: sampleTripId2,
-      columnMemoryImagePath: 'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&w=800&q=80',
+      columnMemoryImagePath:
+          'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&w=800&q=80',
       columnMemoryCaption: 'Hoàng hôn rực rỡ biển Bãi Sao',
       columnMemoryLocation: 'Bãi Sao, Phú Quốc',
       columnMemoryDate: DateTime.now().toIso8601String(),
@@ -220,13 +252,18 @@ class DatabaseHelper {
     );
   }
 
-  Future<List<Trip>> getAllTrips() async {
+  Future<List<Trip>> getAllTrips({String? userId}) async {
     if (kIsWeb) {
+      if (userId != null) {
+        return _webTrips.where((t) => t.userId == userId).toList();
+      }
       return List.unmodifiable(_webTrips);
     }
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
       tableTrips,
+      where: userId != null ? '$columnTripUserId = ?' : null,
+      whereArgs: userId != null ? [userId] : null,
       orderBy: '$columnTripCreatedAt DESC',
     );
     return maps.map((map) => Trip.fromMap(map)).toList();
@@ -280,19 +317,30 @@ class DatabaseHelper {
     );
   }
 
-  Future<List<Trip>> searchTrips(String query) async {
+  Future<List<Trip>> searchTrips(String query, {String? userId}) async {
     if (kIsWeb) {
       final lower = query.toLowerCase();
       return _webTrips.where((t) {
-        return t.title.toLowerCase().contains(lower) ||
+        final matchesUser = userId == null || t.userId == userId;
+        final matchesQuery = t.title.toLowerCase().contains(lower) ||
             t.destination.toLowerCase().contains(lower);
+        return matchesUser && matchesQuery;
       }).toList();
     }
     final db = await database;
+    String whereClause =
+        '($columnTripTitle LIKE ? OR $columnTripDestination LIKE ?)';
+    List<dynamic> whereArgs = ['%$query%', '%$query%'];
+
+    if (userId != null) {
+      whereClause += ' AND $columnTripUserId = ?';
+      whereArgs.add(userId);
+    }
+
     final maps = await db.query(
       tableTrips,
-      where: '$columnTripTitle LIKE ? OR $columnTripDestination LIKE ?',
-      whereArgs: ['%$query%', '%$query%'],
+      where: whereClause,
+      whereArgs: whereArgs,
       orderBy: '$columnTripCreatedAt DESC',
     );
     return maps.map((map) => Trip.fromMap(map)).toList();
@@ -328,11 +376,28 @@ class DatabaseHelper {
     return maps.map((map) => TripMemory.fromMap(map)).toList();
   }
 
-  Future<List<TripMemory>> getAllMemories() async {
+  Future<List<TripMemory>> getAllMemories({String? userId}) async {
     if (kIsWeb) {
+      if (userId != null) {
+        final userTripIds =
+            _webTrips.where((t) => t.userId == userId).map((t) => t.id).toSet();
+        return _webMemories
+            .where((m) => userTripIds.contains(m.tripId))
+            .toList();
+      }
       return List.unmodifiable(_webMemories);
     }
     final db = await database;
+    if (userId != null) {
+      final maps = await db.rawQuery('''
+        SELECT m.* FROM $tableMemories m
+        INNER JOIN $tableTrips t ON m.$columnMemoryTripId = t.$columnTripId
+        WHERE t.$columnTripUserId = ?
+        ORDER BY m.$columnMemoryDate DESC
+      ''', [userId]);
+      return maps.map((map) => TripMemory.fromMap(map)).toList();
+    }
+
     final maps = await db.query(
       tableMemories,
       orderBy: '$columnMemoryDate DESC',

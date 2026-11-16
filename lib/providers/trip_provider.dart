@@ -1,10 +1,16 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/trip.dart';
 import '../models/memory.dart';
+import '../services/auth_service.dart';
 import '../services/database_helper.dart';
 
 class TripProvider extends ChangeNotifier {
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
+  final AuthService _authService = AuthService();
+
+  StreamSubscription? _authSubscription;
+  String? _currentUserId;
 
   List<Trip> _trips = [];
   List<TripMemory> _allMemories = [];
@@ -17,6 +23,16 @@ class TripProvider extends ChangeNotifier {
   String get searchQuery => _searchQuery;
 
   TripProvider() {
+    _currentUserId = _authService.currentUser?.uid ?? 'traveller_demo_99';
+    _authSubscription = _authService.authStateChanges.listen((user) {
+      final newUid = user?.uid ?? 'traveller_demo_99';
+      if (_currentUserId != newUid) {
+        _currentUserId = newUid;
+        loadTrips();
+        loadAllMemories();
+      }
+    });
+
     loadTrips();
     loadAllMemories();
   }
@@ -25,10 +41,11 @@ class TripProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
+      final uid = _currentUserId ?? _authService.currentUser?.uid ?? 'traveller_demo_99';
       if (_searchQuery.trim().isEmpty) {
-        _trips = await _dbHelper.getAllTrips();
+        _trips = await _dbHelper.getAllTrips(userId: uid);
       } else {
-        _trips = await _dbHelper.searchTrips(_searchQuery);
+        _trips = await _dbHelper.searchTrips(_searchQuery, userId: uid);
       }
     } catch (e) {
       debugPrint('Error loading trips: $e');
@@ -44,7 +61,9 @@ class TripProvider extends ChangeNotifier {
   }
 
   Future<int> addTrip(Trip trip) async {
-    final id = await _dbHelper.insertTrip(trip);
+    final uid = _currentUserId ?? _authService.currentUser?.uid ?? 'traveller_demo_99';
+    final tripToInsert = trip.copyWith(userId: uid);
+    final id = await _dbHelper.insertTrip(tripToInsert);
     await loadTrips();
     return id;
   }
@@ -63,7 +82,8 @@ class TripProvider extends ChangeNotifier {
   // --- Quản lý kỷ niệm & album ảnh ---
   Future<void> loadAllMemories() async {
     try {
-      _allMemories = await _dbHelper.getAllMemories();
+      final uid = _currentUserId ?? _authService.currentUser?.uid ?? 'traveller_demo_99';
+      _allMemories = await _dbHelper.getAllMemories(userId: uid);
       notifyListeners();
     } catch (e) {
       debugPrint('Error loading memories: $e');
@@ -83,5 +103,10 @@ class TripProvider extends ChangeNotifier {
     await _dbHelper.deleteMemory(id);
     await loadAllMemories();
   }
-}
 
+  @override
+  void dispose() {
+    _authSubscription?.cancel();
+    super.dispose();
+  }
+}

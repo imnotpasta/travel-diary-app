@@ -3,6 +3,8 @@ import '../../models/community_post.dart';
 import '../../services/auth_service.dart';
 import '../../services/realtime_db_service.dart';
 import '../../utils/formatters.dart';
+import '../../widgets/app_image.dart';
+import '../../widgets/image_picker_widget.dart';
 import 'post_detail_screen.dart';
 
 class CommunityScreen extends StatefulWidget {
@@ -48,12 +50,13 @@ class _CommunityScreenState extends State<CommunityScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              TextField(
-                controller: imageUrlController,
-                decoration: const InputDecoration(
-                  labelText: 'URL hình ảnh chia sẻ',
-                  hintText: 'https://...',
-                ),
+              ImagePickerWidget(
+                label: 'Hình ảnh chia sẻ (Chọn từ máy / Chụp)',
+                initialImage: imageUrlController.text,
+                convertToBase64ForCloud: true,
+                onImageSelected: (path) {
+                  imageUrlController.text = path;
+                },
               ),
               const SizedBox(height: 12),
               TextField(
@@ -234,14 +237,14 @@ class _CommunityScreenState extends State<CommunityScreen> {
 
             // Ảnh bài viết
             if (post.imageUrl.isNotEmpty)
-              Image.network(
-                post.imageUrl,
+              AppImage(
+                imagePath: post.imageUrl,
                 height: 200,
                 width: double.infinity,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
+                errorWidget: Container(
                   height: 140,
-                  color: Colors.teal.withOpacity(0.1),
+                  color: Colors.teal.withValues(alpha: 0.1),
                   child: const Center(child: Icon(Icons.landscape, color: Colors.teal)),
                 ),
               ),

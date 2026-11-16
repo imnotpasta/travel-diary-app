@@ -41,9 +41,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Đăng ký tài khoản du khách thành công!'), backgroundColor: Colors.teal),
+          const SnackBar(
+            content: Text('Đăng ký tài khoản du khách thành công!'),
+            backgroundColor: Colors.teal,
+          ),
         );
-        Navigator.pop(context);
+        Navigator.popUntil(context, (route) => route.isFirst);
       }
     } catch (e) {
       if (mounted) {

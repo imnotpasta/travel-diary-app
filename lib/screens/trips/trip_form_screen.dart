@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../models/trip.dart';
 import '../../providers/trip_provider.dart';
+import '../../widgets/image_picker_widget.dart';
 
 class TripFormScreen extends StatefulWidget {
   final Trip? tripToEdit;
@@ -212,14 +213,13 @@ class _TripFormScreenState extends State<TripFormScreen> {
               ),
               const SizedBox(height: 16),
 
-              // 5. Ảnh bìa URL
-              TextFormField(
-                controller: _coverImageController,
-                decoration: const InputDecoration(
-                  labelText: 'URL ảnh bìa chuyến đi (Tùy chọn)',
-                  hintText: 'https://images.unsplash.com/...',
-                  prefixIcon: Icon(Icons.image_outlined),
-                ),
+              // 5. Ảnh bìa chuyến đi (Chọn từ máy hoặc chụp ảnh)
+              ImagePickerWidget(
+                label: 'Ảnh bìa chuyến đi (Chọn từ máy / Chụp ảnh)',
+                initialImage: _coverImageController.text,
+                onImageSelected: (path) {
+                  _coverImageController.text = path;
+                },
               ),
               const SizedBox(height: 16),
 
