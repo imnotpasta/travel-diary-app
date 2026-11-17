@@ -5,7 +5,7 @@
 
 [![Flutter Version](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter)](https://flutter.dev)
 [![Dart Version](https://img.shields.io/badge/Dart-3.x-0175C2?logo=dart)](https://dart.dev)
-[![Database](https://img.shields.io/badge/Database-Sqflite%20SQLite-003B57?logo=sqlite)](https://pub.dev/packages/sqflite)
+[![Database](https://img.shields.io/badge/Database-Sqflite%20SQLite%20v2-003B57?logo=sqlite)](https://pub.dev/packages/sqflite)
 [![Firebase](https://img.shields.io/badge/Firebase-Auth%20%26%20Realtime-FFCA28?logo=firebase)](https://firebase.google.com)
 [![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS%20%7C%20Web-4CAF50)](#)
 [![Download APK](https://img.shields.io/badge/Download-Android%20APK-2ea44f?logo=android&logoColor=white)](../../releases)
@@ -18,6 +18,11 @@
 > *(Sau khi tải về, mở file trên điện thoại Android và chọn Cài đặt để trải nghiệm ngay).*
 
 ---
+
+### 🔑 Tài khoản trải nghiệm mẫu (Sẵn sàng test):
+* **Email:** `traveler@vietnam.com`
+* **Mật khẩu:** `123456`
+*(Tài khoản đã có sẵn dữ liệu mẫu về các chuyến đi Đà Lạt, Phú Quốc và các bài viết chia sẻ trên cộng đồng).*
 
 ---
 
@@ -35,10 +40,11 @@
 - Áp dụng đầy đủ các widget chuẩn: `LayoutBuilder`, `MediaQuery`, `FittedBox` hạn chế tối đa tràn pixel (`overflow`).
 - **Hỗ trợ Dark/Light Theme:** Tùy chọn chuyển đổi giao diện Sáng / Tối mượt mà, lưu trạng thái lâu dài qua `SharedPreferences`.
 
-### 2. 🗄️ Sổ tay Chuyến đi Offline (Sqflite / SQLite)
+### 2. 🗄️ Sổ tay Chuyến đi Offline (Sqflite / SQLite v2)
 - Thiết kế cơ sở dữ liệu quan hệ chặt chẽ giữa 2 bảng:
-  - `trips`: Lưu trữ thông tin chuyến đi (Tên, Địa điểm, Ngày khởi hành, Chi phí dự trù, Lịch trình chi tiết, Ảnh bìa).
+  - `trips`: Lưu trữ thông tin chuyến đi (Tên, Địa điểm, Ngày khởi hành, Chi phí dự trù, Lịch trình chi tiết, Ảnh bìa, mã `user_id` phân quyền).
   - `trip_memories`: Lưu giữ các bức ảnh kỷ niệm, chú thích, địa điểm và đánh giá sao (ràng buộc khóa ngoại `trip_id` với `ON DELETE CASCADE`).
+- **Chọn ảnh trực tiếp từ thiết bị:** Tích hợp `image_picker` cho phép chụp ảnh từ **Camera** hoặc chọn từ **Thư viện máy (Gallery)** thực tế.
 - Hỗ trợ đầy đủ các thao tác **CRUD**: Thêm mới, Xem danh sách, Tìm kiếm theo từ khóa, Chỉnh sửa và Xóa an toàn.
 - Hỗ trợ fallback mượt mà trên môi trường Web.
 
@@ -50,8 +56,8 @@
 
 ### 4. 🔥 Chia sẻ Kỷ niệm Thời gian thực (Firebase Realtime DB & Auth)
 - **Firebase Auth:** Đăng ký, đăng nhập tài khoản an toàn, duy trì phiên đăng nhập xuyên suốt với `authStateChanges()`.
-- **Hồ sơ Du khách (Profile):** Quản lý thông tin cá nhân, thành phố, tiểu sử và thống kê hành trình.
-- **Realtime Stream:** Chia sẻ địa điểm đẹp, thả tim và bình luận tương tác thời gian thực thông qua `StreamBuilder` kết hợp luồng dữ liệu `async*` / `yield`.
+- **Hồ sơ Du khách (Profile):** Quản lý thông tin cá nhân, thành phố, tiểu sử và Avatar; lưu trữ bền vững cả trên Firebase Cloud (`/users/{uid}.json`) và bộ nhớ máy.
+- **Realtime Stream:** Chia sẻ địa điểm đẹp, thả tim và bình luận tương tác thời gian thực thông qua `StreamBuilder` kết hợp luồng dữ liệu `async*` / `yield` kết nối trực tiếp đến Firebase Cloud (`traveldiary-683c5`).
 
 ---
 
@@ -59,10 +65,11 @@
 
 ```
 travel_diary_app/
+├── android/app/google-services.json       # Cấu hình Firebase
 ├── lib/
 │   ├── main.dart                          # Khởi tạo App, MultiProvider, ThemeMode
 │   ├── models/
-│   │   ├── trip.dart                      # Entity Chuyến đi (SQLite)
+│   │   ├── trip.dart                      # Entity Chuyến đi (SQLite v2)
 │   │   ├── memory.dart                    # Entity Kỷ niệm ảnh (SQLite Foreign Key)
 │   │   ├── weather_model.dart             # Model Thời tiết & Gợi ý trang phục (REST API)
 │   │   ├── community_post.dart            # Model Bài viết & Bình luận (Realtime DB)
@@ -79,7 +86,7 @@ travel_diary_app/
 │   │   ├── main_navigation_screen.dart    # Điều hướng 5 Tabs + Switch Theme
 │   │   ├── trips/
 │   │   │   ├── trip_list_screen.dart      # Danh sách chuyến đi offline + Tìm kiếm
-│   │   │   ├── trip_form_screen.dart      # Thêm/Sửa chuyến đi (Validation)
+│   │   │   ├── trip_form_screen.dart      # Thêm/Sửa chuyến đi (Validation & Image Picker)
 │   │   │   ├── trip_detail_screen.dart    # Chi tiết chuyến đi + Thêm kỷ niệm + Sync POST
 │   │   │   └── album_grid_screen.dart     # Responsive GridView.builder 2/3 cột
 │   │   ├── weather/
@@ -90,13 +97,17 @@ travel_diary_app/
 │   │   └── auth/
 │   │       ├── login_screen.dart          # Đăng nhập tài khoản du khách
 │   │       ├── register_screen.dart       # Đăng ký tài khoản du khách
-│   │       └── profile_screen.dart        # Hồ sơ cá nhân + Thống kê + Đổi theme
+│   │       └── profile_screen.dart        # Hồ sơ cá nhân + Thống kê + Đổi theme & Avatar
 │   ├── widgets/
+│   │   ├── app_image.dart                 # Hiển thị ảnh đa năng (Local, Base64, URL)
+│   │   ├── image_picker_widget.dart       # Chọn ảnh từ Thư viện & Chụp Camera
 │   │   ├── empty_state.dart               # Trạng thái rỗng trực quan
 │   │   └── responsive_card.dart           # Thẻ responsive LayoutBuilder
 │   └── utils/
 │       ├── app_theme.dart                 # Định nghĩa bảng màu Light & Dark Mode
 │       └── formatters.dart                # Định dạng tiền tệ VNĐ và ngày tháng
+├── test/
+│   └── widget_test.dart                   # Bộ kiểm thử tự động
 ├── pubspec.yaml                           # Khai báo packages & dependencies
 └── README.md                              # Tài liệu hướng dẫn dự án
 ```
@@ -139,10 +150,10 @@ travel_diary_app/
 | Hạng mục | Tiêu chí Kỹ thuật | Trạng thái | Điểm tối đa |
 | :--- | :--- | :---: | :---: |
 | **1. UI/UX & Responsive** | Sử dụng `OrientationBuilder` (2 cột đứng / 3 cột ngang), `LayoutBuilder`, `MediaQuery`, `FittedBox`, hỗ trợ Dark/Light Theme. | Hoàn thành 100% | 2.0 |
-| **2. CSDL Cục bộ (Sqflite)** | Thiết kế CSDL quan hệ `trips` - `trip_memories`, khóa ngoại `CASCADE`, đầy đủ hàm CRUD (Thêm, Đọc, Sửa, Xóa). | Hoàn thành 100% | 2.0 |
-| **3. Firebase Auth & Realtime** | Đăng ký/đăng nhập, duy trì phiên `authStateChanges()`, đồng bộ dữ liệu thời gian thực mượt mà bằng `StreamBuilder (async*/yield)`. | Hoàn thành 100% | 2.5 |
+| **2. CSDL Cục bộ (Sqflite)** | Thiết kế CSDL quan hệ `trips` - `trip_memories`, khóa ngoại `CASCADE`, chọn ảnh từ Camera/Gallery, phân quyền theo user. | Hoàn thành 100% | 2.0 |
+| **3. Firebase Auth & Realtime** | Đăng ký/đăng nhập, duy trì phiên `authStateChanges()`, đồng bộ thời gian thực bằng `StreamBuilder (async*/yield)` kết nối Firebase Cloud. | Hoàn thành 100% | 2.5 |
 | **4. REST API & Bất đồng bộ** | Gửi HTTP GET & POST thành công, giải mã qua `jsonDecode()`, xử lý mượt mà các trạng thái của `ConnectionState` trong `FutureBuilder`. | Hoàn thành 100% | 2.0 |
-| **5. Báo cáo & Thuyết trình** | Báo cáo kỹ thuật chi tiết kèm bộ câu hỏi phản biện bảo vệ đồ án chuẩn bị sẵn tại `BAO_CAO_DO_AN_DE_TAI_10.md`. | Hoàn thành 100% | 1.5 |
+| **5. Báo cáo & Thuyết trình** | Báo cáo kỹ thuật chi tiết (`BAO_CAO_DO_AN_DE_TAI_10.md`), slide chữ to rõ ràng (`Bao_Cao_De_Tai_10_BigFont.pptx`), kịch bản lời thoại (`KICH_BAN_THUYET_TRINH_PPT.md`). | Hoàn thành 100% | 1.5 |
 | **TỔNG ĐIỂM** | | **ĐẠT XUẤT SẮC** | **10.0 / 10** |
 
 ---
