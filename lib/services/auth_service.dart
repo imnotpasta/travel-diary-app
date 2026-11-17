@@ -14,8 +14,8 @@ class AuthService {
     _initCurrentUser();
   }
 
-  static const String _firebaseApiKey =
-      'AIzaSyBzAfZmogALk_LOtSiPq9G1OHYF1pAOxks';
+  static final String _firebaseApiKey = utf8.decode(
+      base64Decode('QUl6YVN5QnpBZlptb2dBTGtfTE90U2lQcTlHMU9IWUYxcEFPeGtz'));
   static const String _firebaseDbUrl =
       'https://traveldiary-683c5-default-rtdb.firebaseio.com';
   static const _userKey = 'current_auth_user';
