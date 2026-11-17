@@ -42,7 +42,7 @@ class AppImage extends StatelessWidget {
           fit: fit,
           width: width,
           height: height,
-          errorBuilder: (_, __, ___) => _buildPlaceholder(),
+          errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
         );
       } catch (_) {
         return _buildPlaceholder();
@@ -56,7 +56,7 @@ class AppImage extends StatelessWidget {
         fit: fit,
         width: width,
         height: height,
-        errorBuilder: (_, __, ___) => _buildPlaceholder(),
+        errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
         loadingBuilder: (ctx, child, progress) {
           if (progress == null) return child;
           return Container(
@@ -85,7 +85,7 @@ class AppImage extends StatelessWidget {
             fit: fit,
             width: width,
             height: height,
-            errorBuilder: (_, __, ___) => _buildPlaceholder(),
+            errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
           );
         }
       } catch (_) {}

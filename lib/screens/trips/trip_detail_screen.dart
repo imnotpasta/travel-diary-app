@@ -431,7 +431,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
     return Row(
       children: [
         CircleAvatar(
-          backgroundColor: iconColor.withOpacity(0.12),
+          backgroundColor: iconColor.withValues(alpha: 0.12),
           child: Icon(icon, color: iconColor),
         ),
         const SizedBox(width: 16),

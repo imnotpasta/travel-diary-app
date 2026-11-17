@@ -86,7 +86,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -164,7 +164,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: _popularCities.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                separatorBuilder: (context, index) => const SizedBox(width: 8),
                 itemBuilder: (context, index) {
                   final city = _popularCities[index];
                   final isSelected = _cityController.text.trim().toLowerCase() == city.toLowerCase();
@@ -221,7 +221,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
                 // Trạng thái 3: Gặp lỗi trong quá trình xử lý HTTP
                 if (snapshot.hasError) {
                   return Card(
-                    color: Colors.red.withOpacity(0.08),
+                    color: Colors.red.withValues(alpha: 0.08),
                     child: Padding(
                       padding: const EdgeInsets.all(24),
                       child: Column(
@@ -261,7 +261,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
             Card(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: Colors.teal.withOpacity(0.3)),
+                side: BorderSide(color: Colors.teal.withValues(alpha: 0.3)),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -320,7 +320,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
               borderRadius: BorderRadius.circular(16),
               gradient: LinearGradient(
                 colors: [
-                  Theme.of(context).colorScheme.primary.withOpacity(0.85),
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.85),
                   Theme.of(context).colorScheme.primary,
                 ],
                 begin: Alignment.topLeft,
@@ -387,7 +387,7 @@ class _WeatherScreenState extends State<WeatherScreen> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.15),
+                    color: Colors.orange.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(Icons.checkroom, color: Colors.orange, size: 28),
